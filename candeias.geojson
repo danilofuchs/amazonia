@@ -1,0 +1,7 @@
+{
+"type": "FeatureCollection",
+"name": "candeias",
+"features": [
+{ "type": "Feature", "id": 1, "properties": { }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -63.341818, -8.87654 ], [ -62.765656, -8.87654 ], [ -62.765656, -8.514369 ], [ -63.341818, -8.514369 ], [ -63.341818, -8.87654 ] ] ] } }
+]
+}

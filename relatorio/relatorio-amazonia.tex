@@ -72,9 +72,9 @@ As imagens são capturadas em diversas bandas de interesse, abordado na seção 
 Color Infrared (CIR) são imagens RGB com seus canais compostos arbitrariamente por 3 diferentes faixas de espectro:
 
 \begin{itemize}
-	\item Vermelho (R): NIR/XI3 (Infravermelho próximo - 740-900 nm \cite{skysat:2022})
-	\item Verde (G): RED/XS2 (Vermelho - 605-695 nm \cite{skysat:2022})
-	\item Azul (B): GREEN/XS1 (Verde - 515-595 nm \cite{skysat:2022})
+	\item Canal R: NIR/XI3 (Infravermelho próximo - 740-900 nm \cite{skysat:2022})
+	\item Canal G: RED/XS2 (Vermelho - 605-695 nm \cite{skysat:2022})
+	\item Canal B: GREEN/XS1 (Verde - 515-595 nm \cite{skysat:2022})
 \end{itemize}
 
 Esta combinação é muito utilizada para detectar facilmente diferentes tipos de vegetação, como indicado na Figura \ref{fig:candeias_maio_2023}. Como folhas refletem fortemente na faixa de NIR, tons mais fortes de vermelho na imagem composta indicam maior concentração de vegetação. Estradas e solo aparecem em tons de marrom e cidades em tons azuis, amarelos e cinzas. Nuvens aparecem em ciano claro e branco \cite{eos:cir:2023}.
@@ -98,8 +98,7 @@ Esta combinação é muito utilizada para detectar facilmente diferentes tipos d
 	\label{fig:candeias_maio_2023}
 \end{figure}
 
-Um índice comumente utilizado é o Normalized Difference Vegetation Index (NDVI), determinado pela Equação \ref{eq:ndvi}. Ao aplicar este índice em todos os pixels de uma imagem CIR, obtém-se uma imagem grayscale com escala 0-1, representada na Figura \ref{fig:candeias_maio_2023_ndvi}. Este índice baseia-se no fato da vegetação ter alta refletividade na banda NIR e baixa refletividade na banda vermelha, portanto vegetação
-terá índices altos \cite{eos:cir:2023}.
+Um índice comumente utilizado é o Normalized Difference Vegetation Index (NDVI), determinado pela Equação \ref{eq:ndvi}. Ao aplicar este índice em todos os pixels de uma imagem CIR, obtém-se uma imagem grayscale com escala 0-1, representada na Figura \ref{fig:candeias_maio_2023_ndvi}. Este índice baseia-se no fato da vegetação ter alta refletividade na banda NIR e baixa refletividade na banda vermelha, portanto vegetação terá índices altos \cite{eos:cir:2023}.
 
 \begin{equation} \label{eq:ndvi}
 	NDVI = \frac{NIR - RED}{NIR + RED}

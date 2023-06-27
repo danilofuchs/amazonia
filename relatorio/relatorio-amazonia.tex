@@ -36,7 +36,7 @@
 
 \section{Objetivo}
 
-Propor e implementar em MATLAB um algoritmo K-Means para segmentação de floresta e não-floresta na Amazônia, aplicado em imagens de satélite na banda Near Infra Red (NIR) da cidade de Candeias do Jamari - RO/BR.
+Propor e implementar em MATLAB um algoritmo K-Means para cálculo de área desmatada através da segmentação de floresta e não-floresta na Amazônia, aplicado em imagens de satélite no formato Color Infrared (CIR), da cidade de Candeias do Jamari - Rondônia/BR.
 
 
 \section{Fundamentação Teórica}
@@ -63,16 +63,18 @@ Em 2014, o INPE criou o programa DETER (Sistema de Detecção de Desmatamento em
 
 Em 2020, o governo da Noruega -- através de seu fundo para combate às mudanças climáticas -- licenciou as imagens das florestas tropicais obtidas mensalmente pela empresa americana Planet Labs PBC \cite{noruega:2020}, fornecendo-as em acesso público e gratuito para fins estudantis \cite{planet:2020}.
 
+As imagens são capturadas em diversas bandas de interesse, abordado na seção \ref{ss:cir}, e o processamento das imagens pode ser efetuado através de algoritmos de segmentação de imagens, como o K-Means, abordado na seção \ref{ss:kmeans}.
 
 
 \subsection{Imagens Color Infrared (CIR)}
+\label{ss:cir}
 
 Color Infrared (CIR) são imagens RGB com seus canais compostos arbitrariamente por 3 diferentes faixas de espectro:
 
 \begin{itemize}
-	\item Vermelho (R): NIR (Infravermelho próximo)
-	\item Verde (G): RED/XS2 (Vermelho)
-	\item Azul (B): GREEN/XS1 (Verde)
+	\item Vermelho (R): NIR/XI3 (Infravermelho próximo - 740-900 nm \cite{skysat:2022})
+	\item Verde (G): RED/XS2 (Vermelho - 605-695 nm \cite{skysat:2022})
+	\item Azul (B): GREEN/XS1 (Verde - 515-595 nm \cite{skysat:2022})
 \end{itemize}
 
 Esta combinação é muito utilizada para detectar facilmente diferentes tipos de vegetação, como indicado na Figura \ref{fig:candeias_maio_2023}. Como folhas refletem fortemente na faixa de NIR, tons mais fortes de vermelho na imagem composta indicam maior concentração de vegetação. Estradas e solo aparecem em tons de marrom e cidades em tons azuis, amarelos e cinzas. Nuvens aparecem em ciano claro e branco \cite{eos:cir:2023}.
@@ -106,25 +108,53 @@ terá índices altos \cite{eos:cir:2023}.
 \begin{figure}[!htb]
 	\centering
 	\includegraphics[width=.9\textwidth]{candeias_maio_2023_ndvi.png}
-	\caption{NDVI da área de interesse em Maio de 2023 (fonte: Planet Labs PBC)}
+	\caption{NDVI com auto-contraste da área de interesse em Maio de 2023 (fonte: Planet Labs PBC)}
 	\label{fig:candeias_maio_2023_ndvi}
 \end{figure}
 
-\subsection{Clusterização K-Means}
+\subsection{Segmentação por clusterização K-Means}
+\label{ss:kmeans}
+
+O algoritmo K-Means, proposto em \cite{kmeans:1979}, divide um conjunto de pontos no espaço em K grupos (clusters), de forma que a soma quadrática das distâncias euclidianas entre pontos de um mesmo grupo seja minimizada. O algoritmo é iterativo e converge para os mínimos locais das distâncias estes clusters, ou seja, mover um ponto qualquer de um grupo para outro não diminui a soma de quadrados em nenhum dos grupos.
+
+Em processamento digital de imagens, é utilizado para segmentação de imagens, ou seja, dividir a imagem em regiões de interesse. Sendo a coordenada dos pontos determinadas pelo nível de cinza de cada pixel, o algoritmo divide a imagem em K grupos de pixels com níveis de cinza similares \cite{dhanachandra:2015}. O mesmo princípio pode ser aplicado para imagens coloridas, onde cada ponto é representado por um vetor de 3 dimensões (RGB ou CIR).
+
+
+
+
 
 
 
 \section{Implementação}
 
-O algoritmo utiliza 2 imagens de entrada de dimensões arbitrárias em formato CIR, da mesma área geográfica em diferentes instantes de tempo.
+O programa \verb|amazonia.m| realiza o processamento de duas imagens de entrada no formato CIR, da mesma área geográfica em diferentes instantes de tempo. Aplicando duas abordagens para o algoritmo K-Means e apresentando as áreas de floresta na imagem antiga e na imagem nova, e a diferença entre elas (desmatamento/recuperação da mata).
 
-As imagens foram obtidas dos satélites da empresa americana Planet Labs PBC. A área escolhida foi um retângulo de 1243 km2 definido pelos vértices nas coordenadas [-63.341818,-8.87654], [-62.765656,-8.87654], [-62.765656,-8.514369] e [-63.341818,-8.514369] (arquivo \verb|candeias.geojson|), um trecho do município de Candeias do Jamari, em Rondônia, Brasil. Foram escolhidos 2 \textit{basemaps} que possuem imagens CIR e que não contém nuvens na área de interesse: Junho de 2017 e Novembro de 2022. As imagens foram retiradas de \textit{screenshots} do site da Planet Labs PBC: \url{https://www.planet.com/explorer/?s=UNS6fwFDRaOTUSdpRXroiQ}
+As imagens foram obtidas dos satélites da empresa americana Planet Labs PBC. A área escolhida foi um retângulo de 1243 km\textsuperscript{2} definido pelos vértices nas coordenadas [-63.341818,-8.87654], [-62.765656,-8.87654], [-62.765656,-8.514369] e [-63.341818,-8.514369] (arquivo \verb|candeias.geojson|), um trecho do município de Candeias do Jamari, em Rondônia, Brasil. Foram escolhidos 2 \textit{basemaps} que possuem imagens CIR e que não contém nuvens na área de interesse: Junho de 2017 e Novembro de 2022. A Figura \ref{fig:candeias_imagens_cir} mostra as imagens utilizadas, retiradas de \textit{screenshots} do site da Planet Labs: \url{https://www.planet.com/explorer/?s=UNS6fwFDRaOTUSdpRXroiQ}
 
-O algoritmo foi implementado em MATLAB em duas abordagens: Primeiro, utilizando o índice NDVI que considera apenas os canais NIR e RED. Segundo, utilizando os 3 os canais da imagem CIR.
+\begin{figure}[!htb]
+	\centering
+	\begin{subfigure}[b]{.45\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{candeias_junho_2017_cir.png}
+		\caption{}
+		\label{fig:candeias_junho_2017_cir}
+	\end{subfigure}
+	\begin{subfigure}[b]{.45\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{candeias_nov_2022_cir.png}
+		\caption{}
+		\label{fig:candeias_nov_2022_cir}
+	\end{subfigure}
+	
+	\caption{Área de interesse (fonte: Planet Labs PBC). \subref{fig:candeias_junho_2017_cir} Junho de 2017. \subref{fig:candeias_nov_2022_cir} Novembro de 2022.}
+	\label{fig:candeias_imagens_cir}
+\end{figure}
+
+O algoritmo foi implementado em MATLAB em duas abordagens: Primeiro, a função \verb|process_image_ndvi.m| utiliza o índice NDVI que considera apenas os canais NIR e RED. Segundo, a função \verb|process_image_cir.m| utiliza os 3 os canais da imagem CIR.
 
 O pré-processamento da imagem consiste em: Auto-contraste utilizando a função \verb|imadjust| do MATLAB, para melhorar a visualização; e aplicação de um filtro passa-baixa gaussiano de tamanho 6, sigma de 0.8.
 
-Para o tratamento da imagem CIR completa, foi optado por não realizar auto-contraste na camada NIR, pois observou-se um aumento considerável de ruídos. A Figura \ref{fig:candeias_maio_2023_cir_contrast} mostra uma imagem CIR com auto-contraste apenas na camada RED e GREEN.
+Para o tratamento da imagem CIR completa, foi optado por não realizar auto-contraste na camada NIR, pois observou-se um aumento considerável de ruídos e degradação na segmentação. A Figura \ref{fig:candeias_maio_2023_cir_contrast} mostra uma imagem CIR com auto-contraste apenas na camada RED e GREEN.
 
 \begin{figure}[!htb]
 	\centering
@@ -132,23 +162,20 @@ Para o tratamento da imagem CIR completa, foi optado por não realizar auto-cont
 	\caption{Imagem CIR com auto-contraste nas camadas RED e GREEN da área de interesse em Maio de 2023 (fonte: Planet Labs PBC)}
 	\label{fig:candeias_maio_2023_cir_contrast}
 \end{figure}
-
-O processamento da imagem é feito pelo algoritmo de clusterização K-means com K=3. Este K foi determinado empiricamente de forma que uma das segmentações contenha vegetação (floresta), e as outras contenham 2 níveis de vegetação degradada. A Figura \ref{fig:candeias_maio_2023_ndvi_clusters} mostra a imagem NDVI clusterizada.
+O processamento da imagem é feito pelo algoritmo de clusterização K-Means com K=3. Este K foi determinado empiricamente de forma que uma das segmentações contenha vegetação (floresta), e as outras contenham 2 níveis de vegetação degradada. A Figura \ref{fig:candeias_maio_2023_ndvi_clusters} mostra os clusters retirados de uma imagem NDVI.
 
 \begin{figure}[!htb]
 	\centering
 	\includegraphics[width=.9\textwidth]{candeias_maio_2023_ndvi_clusters.png}
-	\caption{Imagem NDVI clusterizada da área de interesse em Maio de 2023 (fonte: Planet Labs PBC)}
+	\caption{Clusters da imagem NDVI da área de interesse em Maio de 2023 (fonte: Planet Labs PBC)}
 	\label{fig:candeias_maio_2023_ndvi_clusters}
 \end{figure}
 
 O usuário deve selecionar com o mouse qual das regiões segmentadas é a floresta, e o algoritmo determina a área de floresta preservada como o número de pixels desta região, multiplicada pela área correspondente de um pixel. A área de floresta degradada é determinada como a diferença entre a área total e a área de floresta.
 
-Cada processamento é realizado sobre 2 instantes diferentes e um relatório é mostrado no terminal de texto:
-
 \section{Resultados e conclusões}
 
-Os dados obtidos através das duas técnicas de processamento são mostrados abaixo:
+Os dados obtidos da comparação das imagens de Junho de 2017 e Novembro de 2022, através das duas técnicas de processamento são mostrados abaixo:
 
 \begin{verbatim}
 ================ NDVI ================
@@ -172,9 +199,29 @@ Diff    : Área = -0.2446 km^2 	(-19.67%)
 
 É possível observar que ambos obtém resultados bem similares, com uma diferença máxima de 0.59\% entre técnicas. A diferença de área de floresta degradada é de 0.18\%, o que é considerado insignificante.
 
-Futuros trabalhos devem buscar imagens de maior resolução e maior diversidade de satélites e instantes de tempo. É interessante automatizar a seleção da região de floresta, e comparar os resultados com outras técnicas de clusterização, como o K-NN.
+Uma análise visual das segmentações obtidas nos métodos NDVI e CIR (Figura \ref{fig:candeias_nov_2022_overlay}) indica a existência de falsos-positivos em ambos os casos, ou seja, áreas desmatadas que não foram identificadas pelo algoritmo.
 
-Uma comparação interessante é com os dados oficiais do INPE, disponibilizados na ferramenta TerraBrasilis e manipuláveis pelo Sistema de Informação Geográfica (SIG) TerraView, do INPE. Neste projeto, ambos foram investigados, porém exigem um maior conhecimento técnico para manipulação dos dados, e não foi possível obter resultados satisfatórios para comparação.
+\begin{figure}[!htb]
+	\centering
+	\begin{subfigure}[b]{\textwidth}
+		\includegraphics[width=\textwidth]{candeias_nov_2022_ndvi_overlay.png}
+		\caption{}
+		\label{fig:candeias_nov_2022_ndvi_overlay}
+	\end{subfigure}
+	\begin{subfigure}[b]{\textwidth}
+		\includegraphics[width=\textwidth]{candeias_nov_2022_cir_overlay.png}
+		\caption{}
+		\label{fig:candeias_nov_2022_cir_overlay}
+	\end{subfigure}
+	
+	\caption{Segmentação das imagens \subref{fig:candeias_nov_2022_ndvi_overlay} NDVI e \subref{fig:candeias_nov_2022_cir_overlay} CIR}
+	\label{fig:candeias_nov_2022_overlay}
+\end{figure}
+
+
+Futuros trabalhos devem buscar imagens de maiores áreas geográficas, maior resolução, imagens de diferentes satélites e instantes de tempo. É interessante automatizar a seleção da região de floresta, e comparar os resultados com outras técnicas de clusterização, como o K-NN, e algoritmos utilizados pelo INPE.
+
+É relevante a comparação com os mapas e estatísticas oficiais do INPE, disponibilizados na ferramenta TerraBrasilis e manipuláveis pelo Sistema de Informação Geográfica (SIG) TerraView, do INPE. Estas ferramentas foram investigadas para este projeto, porém não foi possível obter resultados satisfatórios para comparação devido à complexidade de manipulação dos programas necessários.
 
 
 % Referências Bibliográficas %
